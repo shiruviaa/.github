@@ -473,6 +473,65 @@ def pillars() -> str:
                    body)
 
 
+def docs_card() -> str:
+    W, H = 1600, 240
+    ix, iy = 56, 64  # book icon origin, 112 x 112 box
+    tx = 210
+    # (label, text colour, border colour): vosu pages pink, the tutorial gold, vosulay violet
+    chip_rows = ((("vosu guide", PINK, PINK), ("vosu API", PINK, PINK)),
+                 (("build an overlay", GOLD, GOLD), ("vosulay docs", LILAC, VIOL)))
+    chip_size, chip_gap, row_gap = 19, 12, 16
+    pad = chip_size * 0.8
+    chip_h = chip_size * 1.9
+    gy = (H - (chip_h * 2 + row_gap)) / 2 + 14
+    chips = []
+    gx = W
+    for r, row in enumerate(chip_rows):
+        widths = [text_width(MONO, label, chip_size) + pad * 2 for label, _, _ in row]
+        cx = W - 64 - (sum(widths) + chip_gap * (len(row) - 1))
+        gx = min(gx, cx)
+        for (label, color, border), w in zip(row, widths):
+            svg, _ = pill(cx, gy + r * (chip_h + row_gap), label, size=chip_size, color=color, border=border)
+            chips.append(svg)
+            cx += w + chip_gap
+    book = (f'<path d="M{ix + 56} {iy + 26} C{ix + 40} {iy + 14} {ix + 20} {iy + 12} {ix + 6} {iy + 16} V{iy + 92} '
+            f'C{ix + 20} {iy + 88} {ix + 40} {iy + 90} {ix + 56} {iy + 102} Z" fill="{PINK}" fill-opacity="0.16" '
+            f'stroke="{PINK}" stroke-width="5" stroke-linejoin="round"/>'
+            f'<path d="M{ix + 56} {iy + 26} C{ix + 72} {iy + 14} {ix + 92} {iy + 12} {ix + 106} {iy + 16} V{iy + 92} '
+            f'C{ix + 92} {iy + 88} {ix + 72} {iy + 90} {ix + 56} {iy + 102} Z" fill="{VIOL}" fill-opacity="0.16" '
+            f'stroke="{VIOL}" stroke-width="5" stroke-linejoin="round"/>'
+            f'<path d="M{ix + 20} {iy + 38} C{ix + 30} {iy + 36} {ix + 40} {iy + 38} {ix + 46} {iy + 42} '
+            f'M{ix + 20} {iy + 56} C{ix + 30} {iy + 54} {ix + 40} {iy + 56} {ix + 46} {iy + 60} '
+            f'M{ix + 92} {iy + 38} C{ix + 82} {iy + 36} {ix + 72} {iy + 38} {ix + 66} {iy + 42}" '
+            f'fill="none" stroke="{INK}" stroke-opacity="0.55" stroke-width="4" stroke-linecap="round"/>')
+    body = f'''<defs>
+  <linearGradient id="dc-bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="{NIGHT_HI}"/><stop offset="1" stop-color="{NIGHT}"/></linearGradient>
+  <radialGradient id="dc-a" cx="{ix + 56}" cy="{iy + 56}" r="420" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="{PINK}" stop-opacity="0.22"/><stop offset="1" stop-color="{PINK}" stop-opacity="0"/></radialGradient>
+  <radialGradient id="dc-b" cx="{W - 160}" cy="0" r="520" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="{VIOL}" stop-opacity="0.26"/><stop offset="1" stop-color="{VIOL}" stop-opacity="0"/></radialGradient>
+  <linearGradient id="dc-edge" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="{PINK}" stop-opacity="0.55"/><stop offset="0.5" stop-color="{INK}" stop-opacity="0.06"/><stop offset="1" stop-color="{VIOL}" stop-opacity="0.45"/></linearGradient>
+  <linearGradient id="dc-rule" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="{PINK}"/><stop offset="1" stop-color="{VIOL}" stop-opacity="0"/></linearGradient>
+  <clipPath id="dc-clip"><rect width="{W}" height="{H}" rx="26"/></clipPath>
+</defs>
+<g clip-path="url(#dc-clip)">
+  <rect width="{W}" height="{H}" fill="url(#dc-bg)"/>
+  <rect width="{W}" height="{H}" fill="url(#dc-b)"/>
+  <rect width="{W}" height="{H}" fill="url(#dc-a)"/>
+  {starfield(W, H, 40, 715, avoid=[(ix + 56, iy + 56, 90), (tx + 380, 120, 0)])}
+  {sparkle(gx - 70, 62, 11, GOLD, 0.9, "spk", 0.3)}
+  {sparkle(gx - 40, 196, 7, INK, 0.75, "spk", 1.5)}
+</g>
+<rect x="1" y="1" width="{W - 2}" height="{H - 2}" rx="25" fill="none" stroke="url(#dc-edge)" stroke-width="2"/>
+{book}
+{text(MONO, "documentation", 19, tx, 82, PINK, 0.95, tracking=0.08)}
+{text(SANS_SEMI, "shiruviaa.github.io", 46, tx, 136, INK)}
+<rect x="{tx + 2}" y="150" width="260" height="3" rx="1.5" fill="url(#dc-rule)"/>
+{text(SANS, "Guides, the API reference, and a step-by-step overlay tutorial.", 25, tx, 192, INK, 0.78)}
+{"".join(chips)}'''
+    return svg_doc(W, H, "shiruviaa documentation",
+                   "shiruviaa.github.io: guides, the API reference, and a step-by-step overlay tutorial. Sections: vosu guide, vosu API, build an overlay, vosulay docs.",
+                   body, ANIM_CSS)
+
+
 def fetch_icon(path: Path) -> str:
     """Inner markup of a product's 1024x1024 app icon SVG."""
     src = path.read_text()
@@ -511,6 +570,7 @@ def main() -> None:
     render("shiruviaa-mark", mark())
     render("shiruviaa-banner", banner())
     render("pillars", pillars())
+    render("card-docs", docs_card(), width=1600)
     for p in projects:
         render(f"card-{p.slug}", card(p), width=1600)
 
